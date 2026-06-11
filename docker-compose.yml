@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  hawkeye:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - hawkeye_data:/app/backend
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+volumes:
+  hawkeye_data:
