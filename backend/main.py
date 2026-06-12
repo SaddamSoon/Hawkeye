@@ -190,7 +190,7 @@ def passive_scan(req_id, url, method, req_headers, res_status, res_headers, res_
     return findings
 
 # ── Routes ─────────────────────────────────────────────────────
-@app.get("/")
+@app.get("/api/status")
 async def root():
     return {"status": "HawkEye running", "version": "1.0.0"}
 
