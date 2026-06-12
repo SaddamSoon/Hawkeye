@@ -22,6 +22,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── Serve React Frontend ───────────────────────────────────────
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+BUILD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "build")
+STATIC_DIR = os.path.join(BUILD_DIR, "static")
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
 # ── Database setup ──────────────────────────────────────────────
 DB_PATH = "hawkeye.db"
 
@@ -434,28 +443,29 @@ async def get_stats():
         "by_method": by_method
     }
 
+# ── Serve React index.html for all non-API routes ─────────────
+@app.get("/")
+async def serve_index():
+    index = os.path.join(BUILD_DIR, "index.html")
+    if os.path.exists(index):
+        return FileResponse(index)
+    return {"status": "HawkEye running", "version": "1.0.0"}
+
+@app.get("/{full_path:path}")
+async def serve_react(full_path: str):
+    # Skip API routes
+    if full_path.startswith("api/") or full_path == "ws" or full_path == "docs" or full_path == "openapi.json":
+        raise HTTPException(status_code=404)
+    file_path = os.path.join(BUILD_DIR, full_path)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return FileResponse(file_path)
+    index = os.path.join(BUILD_DIR, "index.html")
+    if os.path.exists(index):
+        return FileResponse(index)
+    return {"status": "HawkEye running", "version": "1.0.0"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 
-# ── Serve React Frontend ───────────────────────────────────────
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-import os
 
-BUILD_DIR = os.path.join(os.path.dirname(__file__), "build")
-if os.path.exists(BUILD_DIR):
-    STATIC_DIR = os.path.join(BUILD_DIR, "static")
-    if os.path.exists(STATIC_DIR):
-        app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-
-    @app.get("/")
-    async def serve_index():
-        return FileResponse(os.path.join(BUILD_DIR, "index.html"))
-
-    @app.get("/{full_path:path}")
-    async def serve_react(full_path: str):
-        file_path = os.path.join(BUILD_DIR, full_path)
-        if os.path.exists(file_path) and os.path.isfile(file_path):
-            return FileResponse(file_path)
-        return FileResponse(os.path.join(BUILD_DIR, "index.html"))
