@@ -445,11 +445,17 @@ import os
 
 BUILD_DIR = os.path.join(os.path.dirname(__file__), "build")
 if os.path.exists(BUILD_DIR):
-    app.mount("/static", StaticFiles(directory=os.path.join(BUILD_DIR, "static")), name="static")
+    STATIC_DIR = os.path.join(BUILD_DIR, "static")
+    if os.path.exists(STATIC_DIR):
+        app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+    @app.get("/")
+    async def serve_index():
+        return FileResponse(os.path.join(BUILD_DIR, "index.html"))
 
     @app.get("/{full_path:path}")
     async def serve_react(full_path: str):
-        index = os.path.join(BUILD_DIR, "index.html")
-        if os.path.exists(index):
-            return FileResponse(index)
-        return {"error": "Frontend not built"}
+        file_path = os.path.join(BUILD_DIR, full_path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(BUILD_DIR, "index.html"))
