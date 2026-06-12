@@ -443,7 +443,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
-BUILD_DIR = os.path.join(os.path.dirname(__file__), "../build")
+BUILD_DIR = os.path.join(os.path.dirname(__file__), "build")
 if os.path.exists(BUILD_DIR):
     app.mount("/static", StaticFiles(directory=os.path.join(BUILD_DIR, "static")), name="static")
 
