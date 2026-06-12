@@ -6,11 +6,8 @@ WORKDIR /app
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend
+# Copy backend (includes pre-built frontend in backend/build/)
 COPY backend/ ./backend/
-
-# Copy pre-built frontend
-COPY build/ ./build/
 
 WORKDIR /app/backend
 
